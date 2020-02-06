@@ -1,0 +1,29 @@
+server:
+  port: 9090
+  address:
+  tomcat:
+    uri-encoding: utf-8
+  servlet:
+    session:
+      timeout: 10m
+
+spring:
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/music?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&useSSL=false
+    username: root
+    password: 123456
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+  mail:
+    host: smtp.qq.com
+    username: 536323173@qq.com
+    password: lqfbarlswjklbgfe
+    default-encoding: UTF-8
+    protocol: smtp
+file:
+  music: F:/music/music/
+  picture: F:/music/picture/
+
