@@ -39,10 +39,17 @@ public class LoginAndRegistController {
             // 类型为user的用户存在
             Account account = accountService.findUserByUsername(loginDto.getUsername());
             if (account.getPassword().equals(loginDto.getPassword())) {
-                request.getSession().setAttribute("user", account.getUsername());
-                request.getSession().setAttribute("account", account);
-                //密码正确
-                result.setCode(HttpStatus.OK).setMessage("success").setData(account.getUsername());
+                if (account.getIsDel()==true) {
+                    result.setCode(HttpStatus.OK).setMessage("ban").setData("ban");
+                }
+                else
+                {
+                    request.getSession().setAttribute("user", account.getUsername());
+                    request.getSession().setAttribute("account", account);
+                    //密码正确
+                    result.setCode(HttpStatus.OK).setMessage("success").setData(account.getUsername());
+                }
+
             } else {
                 result.setCode(HttpStatus.OK).setMessage("fail").setData("password_wrong");
                 // 密码错误
@@ -94,10 +101,7 @@ public class LoginAndRegistController {
             accountService.add(account);
             result.setCode(HttpStatus.OK).setData("success").setMessage("regist");
         } else {
-            Enumeration em = request.getSession().getAttributeNames();
-            while (em.hasMoreElements()) {
-                request.getSession().removeAttribute(em.nextElement().toString());
-            }
+
             result.setCode(HttpStatus.OK).setData("fail").setMessage("regist");
         }
 
@@ -156,13 +160,18 @@ public class LoginAndRegistController {
         Result<Object> result = new Result<>();
         HttpSession session = request.getSession();
         String username = (String) session.getAttribute("user");
-        if (username == null) {
+        try{
+            if (username == null) {
+                result.setCode(HttpStatus.OK).setMessage("fail").setData("not login");
+            } else {
+                Account account = accountService.findUserByUsername(username);
+                StatusDto statusDto = new StatusDto();
+                statusDto.setName(account.getName()).setUsername(account.getUsername()).setId(account.getId());
+                result.setCode(HttpStatus.OK).setMessage("success").setData(statusDto);
+            }
+
+        }catch (Exception e) {
             result.setCode(HttpStatus.OK).setMessage("fail").setData("not login");
-        } else {
-            Account account = accountService.findUserByUsername(username);
-            StatusDto statusDto = new StatusDto();
-            statusDto.setName(account.getName()).setUsername(account.getUsername()).setId(account.getId());
-            result.setCode(HttpStatus.OK).setMessage("success").setData(statusDto);
         }
         return result;
     }

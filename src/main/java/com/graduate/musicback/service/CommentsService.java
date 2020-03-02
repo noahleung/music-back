@@ -69,4 +69,19 @@ public class CommentsService {
         return true;
 
     }
+
+    public boolean userDelete (String commentsId) {
+        Comments comments =commentsRepository.findCommentsById(commentsId);
+        Account account = (Account) session.getAttribute("account");
+        if (comments.getAccountId().equals(account.getId())) {
+            comments.setIsDel(true);
+            comments.setUpdateAt(new Date());
+            comments.setUpdateBy(account.getId()); // session获取
+            commentsRepository.saveAndFlush(comments);
+            return true;
+        }else
+        {
+            return false;
+        }
+    }
 }

@@ -1,6 +1,7 @@
 package com.graduate.musicback.service;
 
 import com.graduate.musicback.dto.SearchDto;
+import com.graduate.musicback.dto.history.HistorySongsDto;
 import com.graduate.musicback.dto.songs.SongsDto;
 import com.graduate.musicback.dto.songs.SongsPlayDto;
 import com.graduate.musicback.entity.Account;
@@ -13,12 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class SongsService {
@@ -52,34 +52,34 @@ public class SongsService {
         return songsRepository.findSongsByAlbumId(albumId);
     }
 
-    public Page<SongsDto> findAllDeletedSongs(SearchDto searchDto){
+    public Page<SongsDto> findAllDeletedSongs(SearchDto searchDto) {
         // page页数已自动减1
         Pageable pageable = PageRequest.of(searchDto.getPage() - 1, searchDto.getSize());
-        Page<SongsDto> page = songsRepository.findAllDeleted(searchDto.getKeywords(),pageable);
+        Page<SongsDto> page = songsRepository.findAllDeleted(searchDto.getKeywords(), pageable);
         return page;
     }
 
-    public Page<SongsDto> findSongsBySingerId (int page,int size,String singerId) {
+    public Page<SongsDto> findSongsBySingerId(int page, int size, String singerId) {
         page--;
-        Pageable pageable=PageRequest.of(page,size);
-        Page<SongsDto> page1=songsRepository.findSongsDtoBySingerId(singerId,pageable);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<SongsDto> page1 = songsRepository.findSongsDtoBySingerId(singerId, pageable);
         return page1;
     }
 
     // 随机推送10首歌
-    public List<SongsDto> findSongsByRandom(){
+    public List<SongsDto> findSongsByRandom() {
         List<SongsDto> list = new ArrayList<>();
-        List<Object []> list1 = songsRepository.find_songs_by_random();
+        List<Object[]> list1 = songsRepository.find_songs_by_random();
 
-        for(int i=0;i<list1.size();i++){
+        for (int i = 0; i < list1.size(); i++) {
             SongsDto songs = new SongsDto();
-            songs.setId((String)list1.get(i)[0]);
-            songs.setName((String)list1.get(i)[1]);
-            songs.setAlbumName((String)list1.get(i)[2]);
-            songs.setSingerName((String)list1.get(i)[3]);
-            songs.setPicture((String)list1.get(i)[4]);
-            songs.setAlbumId((String)list1.get(i)[5]);
-            songs.setSingerId((String)list1.get(i)[6]);
+            songs.setId((String) list1.get(i)[0]);
+            songs.setName((String) list1.get(i)[1]);
+            songs.setAlbumName((String) list1.get(i)[2]);
+            songs.setSingerName((String) list1.get(i)[3]);
+            songs.setPicture((String) list1.get(i)[4]);
+            songs.setAlbumId((String) list1.get(i)[5]);
+            songs.setSingerId((String) list1.get(i)[6]);
             songs.setType((String) list1.get(i)[7]);
             list.add(songs);
         }
@@ -87,20 +87,20 @@ public class SongsService {
     }
 
     // 统计7天内被播放次数最多的歌曲
-    public List<SongsDto> findTopTenSongs(){
-        Date nowDate= new Date();
-        Date oldDate= new Date( (nowDate.getTime()) - (1000*60*60*24*7));
+    public List<SongsDto> findTopTenSongs() {
+        Date nowDate = new Date();
+        Date oldDate = new Date((nowDate.getTime()) - (1000 * 60 * 60 * 24 * 7));
         List<SongsDto> list = new ArrayList<>();
-        List<Object[]> list1 = songsRepository.find_top_ten_songs(oldDate,nowDate);
-        for(int i=0;i<list1.size();i++){
+        List<Object[]> list1 = songsRepository.find_top_ten_songs(oldDate, nowDate);
+        for (int i = 0; i < list1.size(); i++) {
             SongsDto songs = new SongsDto();
-            songs.setId((String)list1.get(i)[0]);
-            songs.setName((String)list1.get(i)[1]);
-            songs.setAlbumName((String)list1.get(i)[2]);
-            songs.setSingerName((String)list1.get(i)[3]);
-            songs.setPicture((String)list1.get(i)[4]);
-            songs.setAlbumId((String)list1.get(i)[5]);
-            songs.setSingerId((String)list1.get(i)[6]);
+            songs.setId((String) list1.get(i)[0]);
+            songs.setName((String) list1.get(i)[1]);
+            songs.setAlbumName((String) list1.get(i)[2]);
+            songs.setSingerName((String) list1.get(i)[3]);
+            songs.setPicture((String) list1.get(i)[4]);
+            songs.setAlbumId((String) list1.get(i)[5]);
+            songs.setSingerId((String) list1.get(i)[6]);
             songs.setType((String) list1.get(i)[7]);
             list.add(songs);
         }
@@ -108,7 +108,7 @@ public class SongsService {
         return list;
     }
 
-    public SongsDto findSongsDtoById(String id){
+    public SongsDto findSongsDtoById(String id) {
 
         return songsRepository.findSongsDtoById(id);
     }
@@ -122,13 +122,12 @@ public class SongsService {
             songs.setCreateBy(account.getId()); // session获取
             songs.setUpdateBy(account.getId()); // session获取
             songs.setIsDel(false);
-            if(songs.getPicture().equals("") || songs.getPicture() == null) {
+            if (songs.getPicture().equals("") || songs.getPicture() == null) {
                 Album album = albumRepository.findAlbumById(songs.getAlbumId());
                 songs.setPicture(album.getPicture());
             }
             songsRepository.save(songs);
-        } else
-        {
+        } else {
             Songs songs1 = songsRepository.findSongsById(songs.getId());
             songs1.setName(songs.getName());
             songs1.setPicture(songs.getPicture());
@@ -147,37 +146,64 @@ public class SongsService {
         Account account = (Account) session.getAttribute("account");
         String deletedIds[] = ids.split(",");
         Date updateAt = new Date();
-        for(String id : deletedIds){
-            songsRepository.delete(id,updateAt,account.getId()); // session获取
+        for (String id : deletedIds) {
+            songsRepository.delete(id, updateAt, account.getId()); // session获取
         }
     }
 
-    public void deleteByAlbumId(String albumId)
-    {
+    public void deleteByAlbumId(String albumId) {
         List<Songs> list = songsRepository.findSongsByAlbumId(albumId);
-        for(Songs songs : list){
+        for (Songs songs : list) {
             this.delete(songs.getId());
         }
     }
 
-    public void restore(String ids){
+    public void restore(String ids) {
         Account account = (Account) session.getAttribute("account");
         String restoreIds[] = ids.split(",");
-        for(String id : restoreIds){
-            songsRepository.restore(id,new Date(),account.getId()); // session获取
+        for (String id : restoreIds) {
+            songsRepository.restore(id, new Date(), account.getId()); // session获取
         }
     }
 
-    public void restoreByAlbumId(String albumId){
+    public void restoreByAlbumId(String albumId) {
 
         List<Songs> list = songsRepository.findSongsByAlbumId(albumId);
-        for(Songs songs : list){
+        for (Songs songs : list) {
             this.restore(songs.getId());
         }
     }
 
-    public SongsPlayDto playSongs(String id){
+    public SongsPlayDto playSongs(String id) {
         historyService.add(id);
         return songsRepository.playSongs(id);
+    }
+
+    public Map<String, Integer> songsCharts() {
+        List<Songs> list = songsRepository.findAll();
+        int pop = 0, rock = 0, jazz = 0, original = 0, cover = 0, light = 0;
+        for (Songs songs : list) {
+            if (songs.getType().equals("pop")) {
+                pop = pop + 1;
+            } else if (songs.getType().equals("rock")) {
+                rock = rock + 1;
+            } else if (songs.getType().equals("jazz")) {
+                jazz = jazz + 1;
+            } else if (songs.getType().equals("original")) {
+                original = original + 1;
+            } else if (songs.getType().equals("cover")) {
+                cover = cover + 1;
+            } else if (songs.getType().equals("light")) {
+                light = light + 1;
+            }
+        }
+        Map<String, Integer> map = new HashMap<>();
+        map.put("pop", pop);
+        map.put("rock", rock);
+        map.put("jazz", jazz);
+        map.put("original", original);
+        map.put("cover", cover);
+        map.put("light", light);
+        return map;
     }
 }

@@ -3,15 +3,18 @@ package com.graduate.musicback.controller;
 import com.graduate.musicback.dto.PageResult;
 import com.graduate.musicback.dto.Result;
 import com.graduate.musicback.dto.SearchDto;
+import com.graduate.musicback.dto.account.AccountDto;
 import com.graduate.musicback.dto.album.AlbumDto;
 import com.graduate.musicback.dto.reportcomments.ReportCommentsSearchDto;
 import com.graduate.musicback.dto.search.SingerDto;
 import com.graduate.musicback.dto.songs.SongsDto;
+import com.graduate.musicback.entity.Account;
 import com.graduate.musicback.entity.Album;
 import com.graduate.musicback.entity.Singer;
 import com.graduate.musicback.entity.Songs;
 import com.graduate.musicback.service.*;
 import io.swagger.annotations.Api;
+import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
 import java.util.List;
+import java.util.Map;
 
 @Api(description = "", tags = "工作人员接口")
 @RestController
@@ -34,6 +38,11 @@ public class AdminController {
     @Autowired
     private SongsService songsService;
 
+    @Autowired
+    private HistoryService historyService;
+
+    @Autowired
+    private AccountService accountService;
 
     @Autowired
     private ReportCommentsService reportCommentsService;
@@ -55,7 +64,7 @@ public class AdminController {
 
     // 获取专辑标签
     @GetMapping("/find_search_album_dto")
-    public Result<List<com.graduate.musicback.dto.search.AlbumDto>> findSearchAlbumDto () {
+    public Result<List<com.graduate.musicback.dto.search.AlbumDto>> findSearchAlbumDto() {
         Result<List<com.graduate.musicback.dto.search.AlbumDto>> result = new Result<>();
         result.setCode(HttpStatus.OK).setMessage("find_search_album_dto").setData(albumService.findSearchAlbumDto());
         return result;
@@ -85,12 +94,13 @@ public class AdminController {
         albumService.addOrUpdate(album);
         return result;
     }
+
     // -----------------singer---------------
     @PostMapping("/singer_add_or_update")
     public Result<String> singerAddOrUpdate(@RequestBody Singer singer) {
         Result<String> result = new Result<>();
-        result.setCode(HttpStatus.OK).setMessage("singer_addOrUpdate").setData("success");
         singerService.addOrUpdate(singer);
+        result.setCode(HttpStatus.OK).setMessage("singer_addOrUpdate").setData("success");
         return result;
     }
 
@@ -113,7 +123,7 @@ public class AdminController {
 
     // 获取歌手标签
     @GetMapping("/find_search_singer_dto")
-    public Result<List<SingerDto>> findSearchSingerDto () {
+    public Result<List<SingerDto>> findSearchSingerDto() {
         Result<List<SingerDto>> result = new Result<>();
         result.setCode(HttpStatus.OK).setMessage("find_search_singer_dto").setData(singerService.findSearchSingerDto());
         return result;
@@ -134,6 +144,7 @@ public class AdminController {
 
         return result;
     }
+
     //  -----------------songs--------------
     @GetMapping("/songs_restore/{ids}")
     public Result<String> songsRestore(@PathVariable("ids") String ids) {
@@ -172,32 +183,33 @@ public class AdminController {
         result.setCode(HttpStatus.OK).setMessage("songs_delete").setData("success");
         return result;
     }
+
     // ---------------report-------------
     @GetMapping("/report_find_all_none/{page}/{size}")
-    public Result<PageResult<ReportCommentsSearchDto>> reportFindAllNone (@PathVariable("page") int page,@PathVariable("size") int size){
+    public Result<PageResult<ReportCommentsSearchDto>> reportFindAllNone(@PathVariable("page") int page, @PathVariable("size") int size) {
         Result<PageResult<ReportCommentsSearchDto>> result = new Result<>();
-        PageResult<ReportCommentsSearchDto> pageResult =new PageResult<>();
-        Page<ReportCommentsSearchDto> page1 =reportCommentsService.findAllByType(page,size,"none");
+        PageResult<ReportCommentsSearchDto> pageResult = new PageResult<>();
+        Page<ReportCommentsSearchDto> page1 = reportCommentsService.findAllByType(page, size, "none");
         pageResult.setData(page1.getContent()).setTotal(page1.getTotalElements()).setSize(size).setPage(page);
         result.setData(pageResult).setCode(HttpStatus.OK).setMessage("find_all_none");
         return result;
     }
 
     @GetMapping("/report_find_all_pass/{page}/{size}")
-    public Result<PageResult<ReportCommentsSearchDto>> reportFindAllPass (@PathVariable("page") int page,@PathVariable("size") int size){
+    public Result<PageResult<ReportCommentsSearchDto>> reportFindAllPass(@PathVariable("page") int page, @PathVariable("size") int size) {
         Result<PageResult<ReportCommentsSearchDto>> result = new Result<>();
-        PageResult<ReportCommentsSearchDto> pageResult =new PageResult<>();
-        Page<ReportCommentsSearchDto> page1 =reportCommentsService.findAllByType(page,size,"pass");
+        PageResult<ReportCommentsSearchDto> pageResult = new PageResult<>();
+        Page<ReportCommentsSearchDto> page1 = reportCommentsService.findAllByType(page, size, "pass");
         pageResult.setData(page1.getContent()).setTotal(page1.getTotalElements()).setSize(size).setPage(page);
         result.setData(pageResult).setCode(HttpStatus.OK).setMessage("find_all_pass");
         return result;
     }
 
     @GetMapping("/report_find_all_reject/{page}/{size}")
-    public Result<PageResult<ReportCommentsSearchDto>> reportFindAllReject (@PathVariable("page") int page,@PathVariable("size") int size){
+    public Result<PageResult<ReportCommentsSearchDto>> reportFindAllReject(@PathVariable("page") int page, @PathVariable("size") int size) {
         Result<PageResult<ReportCommentsSearchDto>> result = new Result<>();
-        PageResult<ReportCommentsSearchDto> pageResult =new PageResult<>();
-        Page<ReportCommentsSearchDto> page1 =reportCommentsService.findAllByType(page,size,"reject");
+        PageResult<ReportCommentsSearchDto> pageResult = new PageResult<>();
+        Page<ReportCommentsSearchDto> page1 = reportCommentsService.findAllByType(page, size, "reject");
         pageResult.setData(page1.getContent()).setTotal(page1.getTotalElements()).setSize(size).setPage(page);
         result.setData(pageResult).setCode(HttpStatus.OK).setMessage("find_all_reject");
         return result;
@@ -208,22 +220,58 @@ public class AdminController {
     @GetMapping("/report_pass/{ids}")
     public Result<String> reportPass(@PathVariable("ids") String ids) {
         Result<String> result = new Result<>();
-        reportCommentsService.passOrReject(ids,"pass");
+        reportCommentsService.passOrReject(ids, "pass");
         result.setCode(HttpStatus.OK).setMessage("report_pass").setData("suceess");
         return result;
     }
 
     // 审核不通过，某评论不被删除
-    @GetMapping("/report_reject/{ids}" )
+    @GetMapping("/report_reject/{ids}")
     public Result<String> reportReject(@PathVariable("ids") String ids) {
         Result<String> result = new Result<>();
-        reportCommentsService.passOrReject(ids,"reject");
+        reportCommentsService.passOrReject(ids, "reject");
         result.setCode(HttpStatus.OK).setMessage("report_reject").setData("suceess");
         return result;
     }
 
     @GetMapping("/check_login")
-    public Result<String> checkLogin(){
+    public Result<String> checkLogin() {
         return new Result<String>().setCode(HttpStatus.OK).setMessage("check_login").setData("success");
+    }
+
+    // 系统报表
+    @GetMapping("/history_charts")
+    public Result<Map<String, Integer>> historyCharts() {
+        Result<Map<String, Integer>> result = new Result<>();
+        result.setCode(HttpStatus.OK).setMessage("history_charts").setData(historyService.historyCharts());
+        return result;
+    }
+
+    // 系统报表
+    @GetMapping("/songs_charts")
+    public Result<Map<String, Integer>> songsCharts() {
+        Result<Map<String,Integer>> result = new Result<>();
+        result.setCode(HttpStatus.OK).setMessage("songs_charts").setData(songsService.songsCharts());
+        return result;
+    }
+    // -----举报人员-----
+    @GetMapping("/account_find_all_passed")
+    public Result<List<AccountDto>> accountFindAllPassed(){
+        Result<List<AccountDto>> result = new Result<>();
+        result.setCode(HttpStatus.OK).setMessage("report_find_all_passed").setData(accountService.findAllReportPassed());
+        return result;
+    }
+    @GetMapping("/account_update/{accountId}/{type}")
+    public Result<String> accountUpdate (@PathVariable("accountId") String accountId,@PathVariable("type") String type){
+        Result<String> result = new Result<>();
+        if (type.equals("ban")){
+            accountService.accountBanOrUnban(accountId,"ban");
+            result.setCode(HttpStatus.OK).setMessage("ban").setData("success");
+        }else if (type.equals("unban")) {
+            accountService.accountBanOrUnban(accountId,"unban");
+            result.setCode(HttpStatus.OK).setMessage("unban").setData("success");
+        }
+        return result;
+
     }
 }

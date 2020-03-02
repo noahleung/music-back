@@ -9,12 +9,18 @@ import com.graduate.musicback.dto.songs.SongsDto;
 import com.graduate.musicback.entity.Singer;
 import com.graduate.musicback.entity.Songs;
 import com.graduate.musicback.service.*;
+import com.graduate.musicback.utils.Rank;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.PostConstruct;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 @Api(description = "", tags = "游客接口")
@@ -35,7 +41,7 @@ public class VisitorController {
     private CommentsService commentsService;
 
     @Autowired
-    private AccountService accountService;
+    private HistoryService historyService;
 
 
     // ----------------album
@@ -125,12 +131,12 @@ public class VisitorController {
     }
 
 
-    // 查找每7天播放量前十的歌曲
+    // 查找每7天播放量前十的歌曲 排行榜，每天12点更细
     @ApiOperation("查找每周播放量前十的歌曲")
     @GetMapping("/find_top_ten_songs")
     public Result<List<SongsDto>> findTopTenSongs() {
         Result<List<SongsDto>> result = new Result<>();
-        result.setCode(HttpStatus.OK).setMessage("find_top_ten_songs").setData(songsService.findTopTenSongs());
+        result.setCode(HttpStatus.OK).setMessage("find_top_ten_songs").setData(Rank.topSongsList);
         return result;
     }
 
@@ -190,6 +196,13 @@ public class VisitorController {
         Page<CommentsDto> page1 = commentsService.findCommentsByObjectId(page,size,objectId);
         pageResult.setPage(page).setSize(size).setTotal(page1.getTotalElements()).setData(page1.getContent());
         result.setData(pageResult);
+        return result;
+    }
+
+    @GetMapping("/find_average_points/{songsId}")
+    public Result<Float> findAveragePoints(@PathVariable("songsId") String songsId){
+        Result<Float> result =new Result<>();
+        result.setCode(HttpStatus.OK).setMessage("average_points").setData(historyService.findAveragePoints(songsId));
         return result;
     }
 

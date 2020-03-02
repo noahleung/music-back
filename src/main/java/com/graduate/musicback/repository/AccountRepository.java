@@ -1,5 +1,6 @@
 package com.graduate.musicback.repository;
 
+import com.graduate.musicback.dto.account.AccountDto;
 import com.graduate.musicback.entity.Account;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -8,6 +9,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 
 @Repository
@@ -38,7 +41,8 @@ public interface AccountRepository extends JpaRepository<Account,String> {
     @Query(value = "update t_account set is_del = true where id = :#{#id}",nativeQuery = true)
     void deleteAccountById(String id);
 
-
-
-
+    @Query(value="select new com.graduate.musicback.dto.account.AccountDto(account.id,account.name,count(account.id),account.isDel) " +
+            "from Account account,ReportComments report " +
+            "where account.id = report.accountId group by account.id")
+    List<AccountDto> findAllReportPassed();
 }

@@ -1,6 +1,7 @@
 package com.graduate.musicback.service;
 
 import com.graduate.musicback.dto.LoginDto;
+import com.graduate.musicback.dto.account.AccountDto;
 import com.graduate.musicback.entity.Account;
 import com.graduate.musicback.repository.AccountRepository;
 import com.graduate.musicback.utils.SnowflakeIdWorker;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class AccountService {
@@ -20,6 +22,10 @@ public class AccountService {
     private SnowflakeIdWorker snowflakeIdWorker;
     @Autowired
     private AccountRepository accountRepository;
+
+    public List<AccountDto> findAllReportPassed () {
+        return accountRepository.findAllReportPassed();
+    }
 
     public Account findUserByUsername(String username) {
 
@@ -59,8 +65,7 @@ public class AccountService {
         account1.setName(name);
         account1.setUpdateAt(new Date());
         account1.setUpdateBy(((Account) session.getAttribute("account")).getId());
-        System.out.println("name2:"+account1.getName());
-        accountRepository.saveAndFlush(account1);
+          accountRepository.saveAndFlush(account1);
     }
 
     public void updatePassword(String accountId,String afterPassword){
@@ -68,6 +73,22 @@ public class AccountService {
         account.setPassword(afterPassword);
         account.setUpdateAt(new Date());
         account.setUpdateBy(account.getId());
+        accountRepository.saveAndFlush(account);
+    }
+
+    //封号或者解封
+    public void accountBanOrUnban(String accountId,String type) {
+        Account account=accountRepository.findAccountById(accountId);
+        Account admin = (Account) session.getAttribute("account");
+        if (type.equals("ban")) {
+            // 封号
+            account.setIsDel(true);
+        }else {
+            //解封
+            account.setIsDel(false);
+        }
+        account.setUpdateBy(admin.getId());
+        account.setUpdateAt(new Date());
         accountRepository.saveAndFlush(account);
     }
 

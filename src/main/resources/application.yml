@@ -7,10 +7,13 @@ server:
   address:
   tomcat:
     uri-encoding: utf-8
+  servlet:
+    session:
+      timeout: 10m
 
 spring:
   profiles:
-    active: dev
+    active: prod
   main:
     allow-bean-definition-overriding: true
   http:
@@ -25,9 +28,6 @@ spring:
     add-mappings: false # 不要为我们工程中的资源文件建立映射
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://101.37.172.123:3306/k12?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&useSSL=false
-    username: root
-    password: 123456
     type: com.alibaba.druid.pool.DruidDataSource
     sql-script-encoding: utf-8
   jpa:

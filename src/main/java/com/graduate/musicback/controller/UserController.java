@@ -7,13 +7,11 @@ import com.graduate.musicback.dto.songs.SongsPlayDto;
 import com.graduate.musicback.entity.Account;
 import com.graduate.musicback.entity.Comments;
 import com.graduate.musicback.entity.Songs;
-import com.graduate.musicback.service.AccountService;
-import com.graduate.musicback.service.CommentsService;
-import com.graduate.musicback.service.ReportCommentsService;
-import com.graduate.musicback.service.SongsService;
+import com.graduate.musicback.service.*;
 import com.graduate.musicback.utils.Recommend;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.mahout.cf.taste.common.TasteException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
@@ -45,6 +43,9 @@ public class UserController {
     @Autowired
     private Recommend recommend;
 
+    @Autowired
+    private HistoryService historyService;
+
     @ApiOperation("通过id找歌曲")
     @GetMapping("/find_songs_by_id/{id}")
     public Result<Songs> findSongsById(@PathVariable("id") String id) {
@@ -74,7 +75,7 @@ public class UserController {
     public Result<String> deleteComments(@PathVariable("commentsId") String commentsId) {
 
         Result<String> result = new Result<>();
-        Boolean check = commentsService.delete(commentsId);
+        Boolean check = commentsService.userDelete(commentsId);
         if (check) {
             result.setCode(HttpStatus.OK).setMessage("delete_comments").setData("success");
         } else {
@@ -99,6 +100,7 @@ public class UserController {
     public Result<String> updatePassword(@RequestBody PasswordDto passwordDto) {
         Result<String> result = new Result<>();
         Account account = (Account) session.getAttribute("account");
+
         if (passwordDto.getBeforePassword().equals(account.getPassword())) {
             accountService.updatePassword(account.getId(), passwordDto.getAfterPassword());
             result.setCode(HttpStatus.OK).setMessage("update_password").setData("success");
@@ -136,10 +138,24 @@ public class UserController {
 
     @ApiOperation("猜你喜欢")
     @GetMapping("/guess")
-    public Result<String> guess () {
+    public Result<String> guess() throws TasteException {
         Result<String> result = new Result<>();
         String songsId = recommend.guess();
         result.setCode(HttpStatus.OK).setMessage("guess").setData(songsId);
+        return result;
+    }
+
+    @GetMapping("/find_my_points/{songsId}")
+    public Result<Integer> findMyPoints(@PathVariable("songsId") String songsId) {
+        Result<Integer> result = new Result<>();
+        result.setCode(HttpStatus.OK).setMessage("my_points").setData(historyService.findMyPoints(songsId));
+        return result;
+    }
+
+    @GetMapping("/give_my_points/{songsId}/{points}")
+    public Result<Float> giveMyPoints(@PathVariable("songsId") String songsId, @PathVariable("points") int points) {
+        Result<Float> result = new Result<>();
+        result.setCode(HttpStatus.OK).setMessage("give_my_points").setData(historyService.giveMyPoints(songsId,points));
         return result;
     }
 }
